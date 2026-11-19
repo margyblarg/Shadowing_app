@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shadowing Looper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE a compact practice tool, sleek, one screen on a phone
+   IDEA a pocket tape deck: one reel window, a row of small transport keys
+   PICTURE the waveform window with the loop in coral
+   COLOUR white or ink ground, cobalt window, coral loop, yellow playhead
+   TYPE Inter throughout, small and tight
+   LAYOUT bar, waveform, transport, A/B times, sliders; saved sections below */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0c0f1c);--ink:light-dark(#111426,#eef0fa);--mute:light-dark(#5b6079,#9ea4c2);--line:light-dark(#dfe2ec,#283050);--card:light-dark(#f3f4f9,#161b2f);--band:#16257a;--loop:#ff7a59}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.4 Inter,system-ui,sans-serif;overflow-x:clip}
+.app{max-width:760px;margin:0 auto;padding:8px 12px 24px;display:grid;gap:8px}
+.bar{display:flex;align-items:center;gap:8px;min-height:36px}
+h1{font-size:15px;font-weight:700;margin:0;white-space:nowrap}
+#fname{flex:1;color:var(--mute);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:36px;height:36px;flex:none;display:inline-grid;place-items:center;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;padding:0;font:600 13px Inter,system-ui,sans-serif;position:relative}
+.ib svg{width:18px;height:18px}
+.ib:hover{border-color:var(--mute)}
+.ib:active{transform:translateY(1px)}
+.ib:focus-visible,input:focus-visible,.seg button:focus-visible{outline:2px solid var(--loop);outline-offset:2px}
+.ib.acc{background:var(--loop);border-color:var(--loop);color:#260c03}
+.ib.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.load{width:auto;padding:0 10px;gap:6px;display:inline-flex;font-size:13px}
+.load input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+#status{font-size:12px;color:var(--mute);margin:-4px 0 0;min-height:0}
+#status:empty{display:none}
+.wave{position:relative;height:clamp(130px,24vh,200px);border-radius:12px;overflow:hidden;background:var(--band)}
+.wave canvas,.ovw canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#wave{cursor:crosshair}
+.ovrow{display:flex;gap:4px;align-items:center}
+.ovw{position:relative;flex:1;height:30px;border-radius:8px;overflow:hidden}
+#ov{cursor:grab}
+.ovrow .ib{width:30px;height:30px;border-radius:8px}
+.ovrow .ib svg{width:16px;height:16px}
+.tr{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tr .ib{width:42px;height:42px;border-radius:11px}
+.tr .ib svg{width:20px;height:20px}
+.sp{flex:1}
+.seg{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card);height:36px}
+.seg span{padding:0 6px 0 8px;color:var(--mute);display:inline-grid;place-items:center}
+.seg span svg{width:14px;height:14px}
+.seg button{border:0;border-left:1px solid var(--line);background:none;color:var(--ink);font:600 13px Inter,system-ui,sans-serif;height:100%;padding:0 9px;cursor:pointer}
+.ab{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.tf{display:inline-flex;align-items:center;gap:3px}
+.tf b{font-size:12px;color:var(--mute);font-weight:600;width:14px}
+.tf .ib{width:28px;height:32px;border-radius:7px;font-size:15px}
+.tf input{width:68px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);font:500 14px Inter,system-ui,sans-serif;text-align:center;font-variant-numeric:tabular-nums;padding:0;-moz-appearance:textfield}
+.tf input::-webkit-inner-spin-button{display:none}
+#tlen{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px}
+.sl label{display:flex;justify-content:space-between;font-size:12px;color:var(--mute)}
+.sl label b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;height:22px;margin:0;accent-color:var(--loop)}
+.hint{font-size:12px;color:var(--mute);margin:0}
+.saved{border-top:1px solid var(--line);padding-top:10px;margin-top:4px;display:grid;gap:8px}
+h2{font-size:13px;font-weight:700;margin:0}
+.save{display:flex;gap:6px}
+.save input{flex:1;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:16px Inter,system-ui,sans-serif;padding:0 8px}
+.save .ib{width:auto;padding:0 12px;height:34px}
+#slist{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+#slist li{display:flex;gap:4px}
+.sec{flex:1;display:flex;justify-content:space-between;gap:8px;align-items:center;height:34px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:500 13px Inter,system-ui,sans-serif;cursor:pointer;text-align:left}
+.sec span{color:var(--mute);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+#slist .ib{width:34px;height:34px;font-size:16px;color:var(--mute)}
+.empty{color:var(--mute);font-size:13px}
+#vid{display:none;width:100%;max-height:30vh;background:#000;border-radius:12px}
+body.hasvid #vid{display:block}
+body.hasvid .wave{height:clamp(100px,16vh,150px)}
+.ytf{display:flex;gap:6px}
+.ytf input{flex:1;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:16px Inter,system-ui,sans-serif;padding:0 10px}
+#ytwrap{display:none;width:min(100%,calc(32vh * 16 / 9));margin:0 auto;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+#ytwrap iframe{width:100%;height:100%;display:block;border:0}
+body.hasyt #ytwrap{display:block}
+body.hasyt .wave{height:clamp(90px,14vh,140px)}
+body.drop .wave{outline:3px dashed var(--loop);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <h1>Shadowing looper</h1>
+    <span id="fname">Demo: six tone glides</span>
+    <label class="ib acc load" title="Load audio or video file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M12 10v6M9 13l3-3 3 3"/></svg>File<input type="file" id="file" aria-label="Load audio file"></label>
+  </div>
+  <form class="ytf" id="ytForm"><input id="ytUrl" type="text" inputmode="url" autocomplete="off" placeholder="Paste a YouTube link" aria-label="YouTube link"><button class="ib acc" aria-label="Load YouTube video" title="Load YouTube video"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="currentColor" opacity=".25"/><path d="M10 9v6l5-3z" fill="currentColor"/></svg></button></form>
+  <p id="status" role="status" aria-live="polite"></p>
+  <div id="ytwrap"><div id="yt"></div></div>
+
+  <video id="vid" playsinline preload="auto"></video>
+  <div class="wave" id="waveBox"><canvas id="wave" aria-label="Waveform. Drag the coral handles to set the loop."></canvas></div>
+  <div class="ovrow">
+    <div class="ovw"><canvas id="ov" aria-label="Whole file. Drag to move the view."></canvas></div>
+    <button class="ib" id="zOut" title="Zoom out" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M8 11h6M16 16l4 4"/></svg></button>
+    <button class="ib" id="zIn" title="Zoom in" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M8 11h6M11 8v6M16 16l4 4"/></svg></button>
+    <button class="ib" id="zFit" title="Zoom to loop" aria-label="Zoom to loop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4H4v16h4M16 4h4v16h-4"/></svg></button>
+    <button class="ib" id="zAll" title="Whole file" aria-label="Show whole file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg></button>
+  </div>
+
+  <div class="tr">
+    <button class="ib" id="bMain" title="Play / pause from cursor (back to where I was)" aria-label="Play from cursor"></button>
+    <button class="ib acc" id="bLoop" title="Loop section" aria-label="Loop section"></button>
+    <button class="ib" id="bOnce" title="Play section once" aria-label="Play section once"><svg viewBox="0 0 24 24"><path d="M6 4H3v16h3M18 4h3v16h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 8v8l6.5-4z" fill="currentColor"/></svg></button>
+    <button class="ib" id="bStop" title="Stop" aria-label="Stop"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg></button>
+    <span class="sp"></span>
+    <div class="seg" title="Loop the last few seconds"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 103-6.7L3 8"/><path d="M3 3v5h5"/></svg></span><button data-last="5" aria-label="Loop last 5 seconds">5s</button><button data-last="10" aria-label="Loop last 10 seconds">10s</button><button data-last="30" aria-label="Loop last 30 seconds">30s</button></div>
+  </div>
+
+  <div class="ab">
+    <div class="tf"><b>A</b><button class="ib" data-nudge="a,-0.01" aria-label="Start 10 ms earlier">‹</button><input id="ta" type="number" step="0.001" inputmode="decimal" aria-label="Loop start, seconds"><button class="ib" data-nudge="a,0.01" aria-label="Start 10 ms later">›</button></div>
+    <div class="tf"><b>B</b><button class="ib" data-nudge="b,-0.01" aria-label="End 10 ms earlier">‹</button><input id="tb" type="number" step="0.001" inputmode="decimal" aria-label="Loop end, seconds"><button class="ib" data-nudge="b,0.01" aria-label="End 10 ms later">›</button></div>
+    <span id="tlen"></span>
+  </div>
+
+  <div class="sliders">
+    <div class="sl"><label for="spd">Speed <b id="spdv">1.00×</b></label><input type="range" id="spd" min="0.5" max="1" step="0.05" value="1"></div>
+    <div class="sl"><label for="gap">Gap <b id="gapv">0 s</b></label><input type="range" id="gap" min="0" max="10" step="0.5" value="0"></div>
+  </div>
+  <p class="hint">Drag the handles or drag across the waveform for a new loop. Tap the waveform to set the green cursor; ▶ plays on from there. ‹ › move a handle 10 ms.</p>
+
+  <section class="saved" aria-label="Saved sections">
+    <h2>Saved sections</h2>
+    <div class="save"><input id="sname" type="text" placeholder="Name (optional)" aria-label="Section name"><button class="ib" id="bSave">Save loop</button></div>
+    <ul id="slist"></ul>
+    <p class="hint">PC keys: Space loop · K play/pause · P once · 1/2/3 last 5/10/30 s · [ ] start · , . end · wheel zooms · drop a file anywhere to load it.</p>
+  </section>
+</div>
+<script>
+
+{
+const $ = id => document.getElementById(id);
+const wave = $('wave'), ov = $('ov'), spd = $('spd'), gapEl = $('gap'), ta = $('ta'), tb = $('tb');
+const BAND = '#16257a', WAVE = '#aab8ff', WAVE_SEL = '#ffd3c6', LOOP = '#ff7a59', HEAD = '#ffe14d', CUR = '#5cf0b8';
+const BLK = 256;
+const el = document.getElementById('vid');
+el.preservesPitch = true; el.mozPreservesPitch = true; el.webkitPreservesPitch = true;
+let ctx = null, buf = null, dur = 0, norm = 1, peaks = null, fileKey = 'demo', objUrl = null, demoSections = [];
+let sel = {a: 0, b: 1}, view = {s: 0, e: 1}, cursor = 0;
+let src = 'demo', yt = null, ytReady = null, ytId = null, ytStart = 0, yEst = {last: 0, at: 0};
+let run = null, gapTimer = null, wakeLock = null, ticking = false, drag = null;
+
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const status = m => { $('status').textContent = m; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const getCtx = () => { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); return ctx; };
+
+/* ---------- demo clip: six synthetic tone contours ---------- */
+function makeDemo() {
+  const sr = 22050;
+  const tones = [
+    {n: 'Ngang (level)', f: [[0, 200], [1, 200]], len: .55},
+    {n: 'Huyền (low falling)', f: [[0, 170], [1, 135]], len: .55},
+    {n: 'Sắc (rising)', f: [[0, 185], [.3, 190], [1, 265]], len: .55},
+    {n: 'Hỏi (dipping)', f: [[0, 175], [.55, 130], [1, 165]], len: .6},
+    {n: 'Ngã (broken rising)', f: [[0, 185], [.45, 170], [.52, 150], [.58, 205], [1, 255]], len: .6, creak: true},
+    {n: 'Nặng (heavy drop)', f: [[0, 170], [1, 118]], len: .3, cut: true}
+  ];
+  const lead = .4, pause = .4;
+  const total = lead + tones.reduce((s, t) => s + t.len + pause, 0);
+  const n = Math.ceil(total * sr), data = new Float32Array(n);
+  const W = [0, 1, .9, .7, .35, .25, .4, .3, .15];
+  let t0 = lead;
+  for (const tone of tones) {
+    const i0 = Math.floor(t0 * sr), len = Math.floor(tone.len * sr);
+    let ph = 0;
+    for (let i = 0; i < len; i++) {
+      const p = i / len;
+      let k = 1; while (k < tone.f.length - 1 && tone.f[k][0] < p) k++;
+      const [pa, fa] = tone.f[k - 1], [pb, fb] = tone.f[k];
+      const f = fa + (fb - fa) * clamp((p - pa) / (pb - pa || 1), 0, 1);
+      ph += 2 * Math.PI * f / sr;
+      let v = 0; for (let h = 1; h <= 8; h++) v += W[h] * Math.sin(h * ph) / h;
+      const ts = i / sr, te = (len - i) / sr;
+      let env = Math.min(1, ts / .03) * Math.min(1, te / (tone.cut ? .012 : .07));
+      if (tone.creak && p > .44 && p < .58) env *= .25;
+      data[i0 + i] = v * .42 * env;
+    }
+    demoSections.push({name: tone.n, a: +(t0 - .06).toFixed(3), b: +(t0 + tone.len + .06).toFixed(3)});
+    t0 += tone.len + pause;
+  }
+  const b = typeof AudioBuffer === 'function' ? new AudioBuffer({length: n, sampleRate: sr, numberOfChannels: 1}) : getCtx().createBuffer(1, n, sr);
+  b.copyToChannel ? b.copyToChannel(data, 0) : b.getChannelData(0).set(data);
+  return b;
+}
+function wavBlob(b) {
+  const d = b.getChannelData(0), n = d.length, sr = b.sampleRate, ab = new ArrayBuffer(44 + n * 2), v = new DataView(ab);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, clamp(d[i], -1, 1) * 32767, true);
+  return new Blob([ab], {type: 'audio/wav'});
+}
+
+/* ---------- waveform data ---------- */
+function buildPeaks() {
+  const c0 = buf.getChannelData(0), c1 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : null;
+  const n = Math.ceil(c0.length / BLK), mn = new Float32Array(n), mx = new Float32Array(n);
+  let big = 0;
+  for (let i = 0; i < n; i++) {
+    let lo = 0, hi = 0; const e = Math.min(c0.length, (i + 1) * BLK);
+    for (let j = i * BLK; j < e; j++) { const v = c1 ? (c0[j] + c1[j]) / 2 : c0[j]; if (v < lo) lo = v; if (v > hi) hi = v; }
+    mn[i] = lo; mx[i] = hi; big = Math.max(big, hi, -lo);
+  }
+  peaks = {mn, mx}; norm = Math.max(big, .05);
+}
+function colMinMax(t0, t1) {
+  const sr = buf.sampleRate, i0 = Math.max(0, Math.floor(t0 * sr)), i1 = Math.min(buf.length, Math.max(i0 + 1, Math.ceil(t1 * sr)));
+  let lo = 0, hi = 0;
+  if (i1 - i0 >= BLK * 2) {
+    for (let b = Math.floor(i0 / BLK), e = Math.min(peaks.mn.length, Math.ceil(i1 / BLK)); b < e; b++) { if (peaks.mn[b] < lo) lo = peaks.mn[b]; if (peaks.mx[b] > hi) hi = peaks.mx[b]; }
+  } else {
+    const c0 = buf.getChannelData(0), c1 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : null;
+    for (let j = i0; j < i1; j++) { const v = c1 ? (c0[j] + c1[j]) / 2 : c0[j]; if (v < lo) lo = v; if (v > hi) hi = v; }
+  }
+  return [lo, hi];
+}
+
+/* ---------- drawing ---------- */
+function fit(cv) {
+  const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  const w = Math.round(r.width * d), h = Math.round(r.height * d);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  const g = cv.getContext('2d'); g.setTransform(d, 0, 0, d, 0, 0);
+  return {g, w: r.width, h: r.height};
+}
+const tx = (t, w) => (t - view.s) / (view.e - view.s) * w;
+const xt = (x, w) => view.s + x / w * (view.e - view.s);
+function niceStep(span, w) { const target = span / Math.max(1, w / 90); return [.01, .02, .05, .1, .2, .5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600].find(s => s >= target) || 600; }
+function tickLabel(t, step) {
+  if (t >= 60 && step >= 1) return Math.floor(t / 60) + ':' + String(Math.round(t % 60)).padStart(2, '0');
+  return t.toFixed(step < .1 ? 2 : step < 1 ? 1 : 0);
+}
+function handle(g, x, h) {
+  g.fillStyle = LOOP; g.fillRect(x - 1, 0, 2, h);
+  for (const y of [8, h - 8]) { g.beginPath(); g.arc(x, y, 6.5, 0, 7); g.fill(); }
+}
+function drawWave() {
+  const {g, w, h} = fit(wave), ruler = 22, ph = h - ruler;
+  g.fillStyle = BAND; g.fillRect(0, 0, w, h);
+  if (!dur) return;
+  const mid = ph / 2, amp = ph / 2 - 18, span = view.e - view.s;
+  const xa = tx(sel.a, w), xb = tx(sel.b, w);
+  g.fillStyle = 'rgba(255,122,89,.2)'; g.fillRect(xa, 0, xb - xa, ph);
+  if (!peaks) { g.fillStyle = 'rgba(170,184,255,.35)'; g.fillRect(0, mid, w, 1); g.font = '12px Inter,system-ui,sans-serif'; g.fillStyle = 'rgba(255,255,255,.55)'; g.textBaseline = 'alphabetic'; g.fillText('No waveform for this file', 10, ph - 26); }
+  for (let x = 0; peaks && x < w; x++) {
+    const t0 = view.s + x / w * span, t1 = t0 + span / w;
+    if (t0 > dur) break;
+    const [lo, hi] = colMinMax(t0, t1), y1 = mid - hi / norm * amp, y2 = mid - lo / norm * amp;
+    g.fillStyle = t0 >= sel.a && t1 <= sel.b ? WAVE_SEL : WAVE;
+    g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+  }
+  const step = niceStep(span, w);
+  g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, ph, w, ruler);
+  g.font = '11px Inter,system-ui,sans-serif'; g.textBaseline = 'middle';
+  for (let i = Math.ceil(view.s / step); i * step <= view.e; i++) {
+    const t = i * step, x = tx(t, w);
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(x, ph, 1, 5);
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(tickLabel(t, step), x + 3, ph + ruler / 2 + 1);
+  }
+  const xc = tx(cursor, w);
+  if (xc >= 0 && xc <= w) { g.fillStyle = CUR; for (let y = 0; y < ph; y += 8) g.fillRect(xc - 1, y, 2, 4); }
+  handle(g, xa, ph); handle(g, xb, ph);
+  if (run) { const xp = tx(run.getTime(), w); g.fillStyle = HEAD; g.fillRect(xp - 1, 0, 2, ph); }
+}
+function drawOv() {
+  const {g, w, h} = fit(ov);
+  g.fillStyle = '#0f1a5c'; g.fillRect(0, 0, w, h);
+  if (!dur) return;
+  const mid = h / 2, amp = h / 2 - 4;
+  g.fillStyle = 'rgba(170,184,255,.7)';
+  if (!peaks) g.fillRect(0, mid, w, 1);
+  for (let x = 0; peaks && x < w; x++) { const [lo, hi] = colMinMax(x / w * dur, (x + 1) / w * dur); g.fillRect(x, mid - hi / norm * amp, 1, Math.max(1, (hi - lo) / norm * amp)); }
+  const X = t => t / dur * w;
+  g.fillStyle = LOOP; g.fillRect(X(sel.a), h - 4, Math.max(2, X(sel.b) - X(sel.a)), 4);
+  g.fillStyle = 'rgba(255,255,255,.14)'; g.fillRect(X(view.s), 0, X(view.e) - X(view.s), h);
+  g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.strokeRect(X(view.s) + .75, .75, Math.max(3, X(view.e) - X(view.s) - 1.5), h - 1.5);
+  if (run) { g.fillStyle = HEAD; g.fillRect(X(run.getTime()) - 1, 0, 2, h); }
+}
+function draw() { drawWave(); drawOv(); }
+
+/* ---------- view ---------- */
+function setView(s, e) {
+  const span = clamp(e - s, Math.min(.2, dur), dur);
+  s = clamp(s, 0, dur - span); view = {s, e: s + span};
+}
+function zoom(f, anchor) {
+  const span = view.e - view.s, c = anchor ?? ((sel.a + sel.b) / 2 >= view.s && (sel.a + sel.b) / 2 <= view.e ? (sel.a + sel.b) / 2 : (view.s + view.e) / 2);
+  const ns = span * f, k = (c - view.s) / span;
+  setView(c - ns * (anchor == null ? .5 : k), c - ns * (anchor == null ? .5 : k) + ns); draw();
+}
+function fitLoop() { const pad = (sel.b - sel.a) * .15 + .05; setView(sel.a - pad, sel.b + pad); draw(); }
+function ensureSelVisible() { if (sel.a < view.s || sel.b > view.e) fitLoop(); }
+
+/* ---------- playback ---------- */
+async function requestWake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) {} }
+function releaseWake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+
+function stopAll() {
+  clearTimeout(gapTimer); gapTimer = null;
+  if (run) {
+    if (run.mode === 'through') cursor = clamp(run.getTime(), 0, dur);
+    const r = run; run = null;
+    if (r.src) { r.src.onended = null; try { r.src.stop(); } catch (e) {} }
+  }
+  el.pause(); if (src === 'yt' && yt && yt.pauseVideo) yt.pauseVideo();
+  releaseWake(); updateButtons(); draw();
+}
+function finish(r) {
+  if (run !== r) return;
+  if (r.mode === 'through') cursor = r.end;
+  run = null; releaseWake(); updateButtons(); draw();
+}
+function play(mode, start, end) {
+  stopAll();
+  if (!dur) return;
+  start = clamp(start, 0, dur); end = clamp(end, Math.min(dur, start + .01), dur);
+  if (end - start < .01) return;
+  const r = {mode, start, end, inGap: false, getTime: () => start};
+  run = r;
+  requestWake();
+  if (src === 'yt') playYT(r); else if (+spd.value === 1 && buf) playWA(r); else playEl(r);
+  updateButtons();
+  if (!ticking) tick();
+}
+function playWA(r) {
+  const c = getCtx(); c.resume();
+  const loop = r.mode === 'loop', gap = +gapEl.value, len = r.end - r.start;
+  const go = () => {
+    if (run !== r) return;
+    r.inGap = false;
+    const s = c.createBufferSource(); s.buffer = buf; s.connect(c.destination); r.src = s;
+    const t0 = c.currentTime;
+    if (loop && gap === 0) {
+      s.loop = true; s.loopStart = r.start; s.loopEnd = r.end; s.start(t0, r.start);
+      r.getTime = () => r.start + ((c.currentTime - t0) % len);
+    } else {
+      s.start(t0, r.start, len);
+      r.getTime = () => Math.min(r.end, r.start + c.currentTime - t0);
+      s.onended = () => {
+        if (run !== r) return;
+        if (loop) { r.inGap = true; r.getTime = () => r.end; gapTimer = setTimeout(go, gap * 1000); }
+        else finish(r);
+      };
+    }
+  };
+  go();
+}
+function playEl(r) {
+  r.el = true;
+  el.playbackRate = +spd.value; el.currentTime = r.start;
+  r.getTime = () => el.currentTime;
+  const p = el.play(); if (p) p.catch(e => status('Playback was blocked: ' + e.message));
+}
+function ytNow() {
+  const t = yt.getCurrentTime(), now = performance.now();
+  if (t !== yEst.raw) yEst = {raw: t, last: t, at: now};
+  if (yt.getPlayerState() !== 1) return t;
+  return Math.min(yEst.last + .5, yEst.last + (now - yEst.at) / 1000 * (yt.getPlaybackRate() || 1));
+}
+function ytSeek(r, t) {
+  yt.seekTo(t, true);
+  yEst = {raw: NaN, last: t, at: performance.now()};
+  r.guardUntil = performance.now() + 400;
+  r.getTime = ytNow;
+}
+function playYT(r) {
+  r.yt = true;
+  const want = +spd.value;
+  yt.setPlaybackRate(want);
+  ytSeek(r, r.start); yt.playVideo();
+  setTimeout(() => { const got = yt.getPlaybackRate && yt.getPlaybackRate(); if (got && Math.abs(got - want) > .01) status('YouTube is using ' + got + '× (it only allows some speeds).'); }, 600);
+}
+function tick() {
+  if (!run) { ticking = false; draw(); return; }
+  ticking = true;
+  const r = run;
+  if (r.el && !r.inGap && (el.currentTime >= r.end - .004 || el.ended)) {
+    el.pause();
+    if (r.mode === 'loop') {
+      r.inGap = true; r.getTime = () => r.end;
+      gapTimer = setTimeout(() => {
+        if (run !== r) return;
+        r.inGap = false; el.currentTime = r.start; r.getTime = () => el.currentTime; el.play().catch(() => {});
+      }, +gapEl.value * 1000);
+    } else finish(r);
+  }
+  if (r.yt && run === r && !r.inGap && performance.now() > r.guardUntil && r.getTime() >= r.end - .02) {
+    if (r.mode === 'loop') {
+      const g = +gapEl.value;
+      const again = () => { if (run !== r) return; r.inGap = false; ytSeek(r, r.start); yt.playVideo(); };
+      if (g === 0) again();
+      else { yt.pauseVideo(); r.inGap = true; r.getTime = () => r.end; gapTimer = setTimeout(again, g * 1000); }
+    } else { yt.pauseVideo(); finish(r); }
+  }
+  if (run && run.mode === 'through') {
+    const t = run.getTime(), span = view.e - view.s;
+    if (t > view.e || t < view.s) setView(t - span * .05, t + span * .95);
+  }
+  draw();
+  requestAnimationFrame(tick);
+}
+function restartIfLooping() { if (run && run.mode !== 'through') play(run.mode, sel.a, sel.b); }
+const ICON = {
+  play: '<svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z" fill="currentColor"/></svg>',
+  pause: '<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>',
+  loop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 014-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 01-4 4H4"/></svg>'
+};
+function updateButtons() {
+  const looping = run && run.mode === 'loop', through = run && run.mode === 'through';
+  const bl = $('bLoop'), bm = $('bMain');
+  bl.innerHTML = looping ? ICON.pause : ICON.loop;
+  bl.setAttribute('aria-label', looping ? 'Stop loop' : 'Loop section');
+  bm.innerHTML = through ? ICON.pause : ICON.play;
+  bm.setAttribute('aria-label', through ? 'Pause' : 'Play from cursor');
+  bm.classList.toggle('on', !!through);
+}
+function loopLast(n) {
+  let t = cursor;
+  if (run && run.mode === 'through') t = run.getTime();
+  stopAll(); cursor = t;
+  sel = {a: Math.max(0, t - n), b: Math.max(t, Math.min(dur, .05))};
+  syncInputs(); ensureSelVisible(); play('loop', sel.a, sel.b);
+}
+
+/* ---------- selection inputs ---------- */
+function syncInputs() {
+  ta.value = sel.a.toFixed(3); tb.value = sel.b.toFixed(3);
+  $('tlen').textContent = (sel.b - sel.a).toFixed(3) + ' s';
+}
+function setSel(a, b) {
+  a = clamp(a, 0, dur); b = clamp(b, 0, dur);
+  if (b - a < .02) { if (b + .02 <= dur) b = a + .02; else a = b - .02; }
+  sel = {a, b}; syncInputs(); draw();
+}
+ta.addEventListener('change', () => { const v = parseFloat(ta.value); if (!isNaN(v)) setSel(Math.min(v, sel.b - .02), sel.b); else syncInputs(); ensureSelVisible(); restartIfLooping(); });
+tb.addEventListener('change', () => { const v = parseFloat(tb.value); if (!isNaN(v)) setSel(sel.a, Math.max(v, sel.a + .02)); else syncInputs(); ensureSelVisible(); restartIfLooping(); });
+function nudge(k, d) {
+  if (k === 'a') setSel(Math.min(sel.a + d, sel.b - .02), sel.b); else setSel(sel.a, Math.max(sel.b + d, sel.a + .02));
+  restartIfLooping();
+}
+document.querySelectorAll('[data-nudge]').forEach(b => b.addEventListener('click', () => { const [k, d] = b.dataset.nudge.split(','); nudge(k, +d); }));
+document.querySelectorAll('[data-last]').forEach(b => b.addEventListener('click', () => loopLast(+b.dataset.last)));
+
+/* ---------- pointer on waveform ---------- */
+const pt = e => { const r = wave.getBoundingClientRect(), x = e.clientX - r.left; return {x, w: r.width, t: clamp(xt(x, r.width), 0, dur)}; };
+wave.addEventListener('pointerdown', e => {
+  if (!dur) return;
+  wave.setPointerCapture(e.pointerId);
+  const {x, w, t} = pt(e), da = Math.abs(x - tx(sel.a, w)), db = Math.abs(x - tx(sel.b, w));
+  if (Math.min(da, db) <= 24) drag = {k: da < db || (da === db && x < tx(sel.a, w)) ? 'a' : 'b'};
+  else drag = {k: 'new', t0: t, x0: x, moved: false};
+});
+wave.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const {x, t} = pt(e);
+  if (drag.k === 'a') setSel(Math.min(t, sel.b - .02), sel.b);
+  else if (drag.k === 'b') setSel(sel.a, Math.max(t, sel.a + .02));
+  else {
+    if (Math.abs(x - drag.x0) > 8) drag.moved = true;
+    if (drag.moved) setSel(Math.min(drag.t0, t), Math.max(drag.t0, t));
+  }
+});
+wave.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (d.k === 'new' && !d.moved) {
+    const t = d.t0;
+    if (run && run.mode === 'through') { play('through', t, dur); }
+    cursor = t; draw();
+  } else restartIfLooping();
+});
+wave.addEventListener('pointercancel', () => { drag = null; });
+wave.addEventListener('wheel', e => {
+  if (!dur) return; e.preventDefault();
+  const {t} = pt(e); zoom(e.deltaY > 0 ? 1.25 : .8, t);
+}, {passive: false});
+let ovDrag = false;
+const ovMove = e => { const r = ov.getBoundingClientRect(), t = clamp((e.clientX - r.left) / r.width, 0, 1) * dur, span = view.e - view.s; setView(t - span / 2, t + span / 2); draw(); };
+ov.addEventListener('pointerdown', e => { if (!dur) return; ovDrag = true; ov.setPointerCapture(e.pointerId); ovMove(e); });
+ov.addEventListener('pointermove', e => { if (ovDrag) ovMove(e); });
+ov.addEventListener('pointerup', () => { ovDrag = false; });
+ov.addEventListener('pointercancel', () => { ovDrag = false; });
+
+/* ---------- buttons ---------- */
+$('zIn').addEventListener('click', () => zoom(.5));
+$('zOut').addEventListener('click', () => zoom(2));
+$('zFit').addEventListener('click', fitLoop);
+$('zAll').addEventListener('click', () => { setView(0, dur); draw(); });
+$('bLoop').addEventListener('click', () => { if (run && run.mode === 'loop') stopAll(); else play('loop', sel.a, sel.b); });
+$('bOnce').addEventListener('click', () => play('once', sel.a, sel.b));
+$('bMain').addEventListener('click', () => { if (run && run.mode === 'through') stopAll(); else play('through', cursor >= dur - .01 ? 0 : cursor, dur); });
+$('bStop').addEventListener('click', stopAll);
+spd.addEventListener('input', () => { $('spdv').textContent = (+spd.value).toFixed(2) + '×'; });
+gapEl.addEventListener('input', () => { $('gapv').textContent = (+gapEl.value) + ' s'; });
+const restartOnSetting = () => { if (!run) return; if (run.mode === 'through') play('through', run.getTime(), dur); else play(run.mode, sel.a, sel.b); };
+spd.addEventListener('change', restartOnSetting);
+gapEl.addEventListener('change', restartOnSetting);
+
+/* ---------- saved sections ---------- */
+function getList() {
+  try { const s = localStorage.getItem('shadow:' + fileKey); if (s) return JSON.parse(s); } catch (e) {}
+  return fileKey === 'demo' ? demoSections.slice() : [];
+}
+function putList(arr) { try { localStorage.setItem('shadow:' + fileKey, JSON.stringify(arr)); } catch (e) { status('Could not save in this browser.'); } }
+function renderList() {
+  const arr = getList();
+  $('slist').innerHTML = arr.length ? arr.map((s, i) => `<li><button class="sec" data-i="${i}">${esc(s.name)}<span>${s.a.toFixed(3)}–${s.b.toFixed(3)} s</span></button><button class="ib" data-del="${i}" aria-label="Delete ${esc(s.name)}">×</button></li>`).join('')
+    : '<li class="empty">No saved sections yet. Set a loop, then tap Save loop.</li>';
+}
+$('slist').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const arr = getList();
+  if (b.dataset.del != null) { arr.splice(+b.dataset.del, 1); putList(arr); renderList(); return; }
+  const s = arr[+b.dataset.i]; if (!s) return;
+  setSel(s.a, s.b); fitLoop(); play('loop', sel.a, sel.b);
+});
+$('bSave').addEventListener('click', () => {
+  if (!dur) return;
+  const arr = getList(), name = $('sname').value.trim() || `${sel.a.toFixed(3)}–${sel.b.toFixed(3)}`;
+  arr.push({name, a: +sel.a.toFixed(3), b: +sel.b.toFixed(3)}); putList(arr); renderList();
+  $('sname').value = ''; status('Saved “' + name + '”.');
+});
+
+
+
+/* ---------- keyboard (PC) ---------- */
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); $('bLoop').click(); }
+  else if (k === 'k') $('bMain').click();
+  else if (k === 'p') $('bOnce').click();
+  else if (k === '1') loopLast(5); else if (k === '2') loopLast(10); else if (k === '3') loopLast(30);
+  else if (k === '[') nudge('a', -.01); else if (k === ']') nudge('a', .01);
+  else if (k === ',') nudge('b', -.01); else if (k === '.') nudge('b', .01);
+});
+
+/* ---------- loading ---------- */
+function afterLoad() {
+  dur = buf ? buf.duration : el.duration; peaks = null; if (buf) buildPeaks(); cursor = 0;
+  setView(0, Math.min(dur, 30));
+  sel = {a: 0, b: Math.min(dur, 2)};
+  syncInputs(); renderList(); draw();
+}
+const isVideo = f => /^video\//.test(f.type) || /\.(mkv|mp4|m4v|webm|mov|avi)$/i.test(f.name);
+function metaReady() {
+  return new Promise((res, rej) => {
+    const ok = () => { off(); res(); }, bad = () => { off(); rej(el.error); };
+    const off = () => { el.removeEventListener('loadedmetadata', ok); el.removeEventListener('error', bad); };
+    el.addEventListener('loadedmetadata', ok); el.addEventListener('error', bad);
+  });
+}
+async function readBytes(f) {
+  return f.arrayBuffer ? f.arrayBuffer() : new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsArrayBuffer(f); });
+}
+async function loadFile(f) {
+  if (!f) return;
+  stopAll(); status('Loading ' + f.name + '…');
+  if (yt && yt.pauseVideo) yt.pauseVideo();
+  src = 'file'; document.body.classList.remove('hasyt');
+  if (objUrl) URL.revokeObjectURL(objUrl);
+  objUrl = URL.createObjectURL(f);
+  const meta = metaReady();
+  el.src = objUrl; el.load();
+  try { await meta; }
+  catch (err) {
+    status('Your browser can’t play “' + f.name + '”. MKV files often use AC3 or DTS audio, which phone browsers don’t support; converting to mp4 fixes this.');
+    return;
+  }
+  const vid = el.videoWidth > 0;
+  document.body.classList.toggle('hasvid', vid);
+  buf = null;
+  let note = '';
+  if (!isVideo(f) && f.size <= 60e6) {
+    try { const ab = await readBytes(f); const c = getCtx(); buf = await new Promise((res, rej) => { const p = c.decodeAudioData(ab, res, rej); if (p && p.then) p.then(res, rej); }); }
+    catch (err) { buf = null; note = 'Playing without a waveform (the file could not be decoded for drawing).'; }
+  } else if (!isVideo(f)) note = 'Large file: playing without a waveform to save memory.';
+  fileKey = f.name + '|' + f.size;
+  $('fname').textContent = f.name;
+  afterLoad();
+  status(note);
+}
+/* ---------- YouTube ---------- */
+function ytApi() {
+  if (ytReady) return ytReady;
+  ytReady = new Promise((res, rej) => {
+    window.onYouTubeIframeAPIReady = () => res();
+    const sc = document.createElement('script'); sc.src = 'https://www.youtube.com/iframe_api';
+    sc.onerror = () => { ytReady = null; rej(new Error('blocked')); };
+    document.head.appendChild(sc);
+    setTimeout(() => { if (!window.YT || !window.YT.Player) { ytReady = null; rej(new Error('timeout')); } }, 15000);
+  });
+  return ytReady;
+}
+function parseYT(u) {
+  u = u.trim(); const found = u.match(/https?:\/\/\S+/); if (found) u = found[0];
+  if (/^[\w-]{11}$/.test(u)) return {id: u, t: 0};
+  let url; try { url = new URL(/^https?:/.test(u) ? u : 'https://' + u); } catch (e) { return null; }
+  const h = url.hostname.replace(/^(www|m|music)\./, '');
+  let id = null;
+  if (h === 'youtu.be') id = url.pathname.slice(1, 12);
+  else if (h.endsWith('youtube.com')) { id = url.searchParams.get('v'); if (!id) { const m = url.pathname.match(/\/(shorts|embed|live|v)\/([\w-]{11})/); if (m) id = m[2]; } }
+  if (!id || !/^[\w-]{11}$/.test(id)) return null;
+  const m = (url.searchParams.get('t') || url.searchParams.get('start') || '').match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/);
+  return {id, t: m ? (+(m[1] || 0)) * 3600 + (+(m[2] || 0)) * 60 + (+(m[3] || 0)) : 0};
+}
+function ytSetup(d) {
+  dur = d; buf = null; peaks = null; cursor = Math.min(ytStart, d);
+  fileKey = 'yt:' + ytId;
+  const title = yt.getVideoData && yt.getVideoData().title;
+  $('fname').textContent = title || 'YouTube video';
+  setView(cursor - 2, cursor + 28);
+  sel = {a: cursor, b: Math.min(dur, cursor + 3)};
+  syncInputs(); renderList(); draw(); status('');
+}
+function ytState(e) {
+  if (src !== 'yt') return;
+  if (!dur) { const d = yt.getDuration(); if (d > 0) ytSetup(d); }
+  if (e.data === 1 && !run && dur) {
+    const r = {mode: 'through', start: yt.getCurrentTime(), end: dur, inGap: false, yt: true, guardUntil: 0};
+    yEst = {raw: NaN, last: r.start, at: performance.now()}; r.getTime = ytNow;
+    run = r; requestWake(); updateButtons(); if (!ticking) tick();
+  } else if (e.data === 2 && run && run.mode === 'through') stopAll();
+  else if (e.data === 0 && run) finish(run);
+}
+function ytErr(e) {
+  const m = {2: 'That video ID is not valid.', 5: 'The video could not play in this browser.', 100: 'Video not found (removed or private).', 101: 'The owner does not allow this video to be embedded in other sites.', 150: 'The owner does not allow this video to be embedded in other sites.'};
+  status(m[e.data] || 'YouTube error ' + e.data + '.');
+}
+async function loadYT(input) {
+  const p = parseYT(input);
+  if (!p) { status('That doesn’t look like a YouTube link.'); return; }
+  stopAll(); status('Loading video…');
+  try { await ytApi(); } catch (e) { status('YouTube’s player could not load here. Open the app from its GitHub Pages link.'); return; }
+  el.pause(); el.removeAttribute('src'); el.load();
+  document.body.classList.remove('hasvid'); document.body.classList.add('hasyt');
+  src = 'yt'; ytId = p.id; ytStart = p.t; dur = 0; buf = null; peaks = null; draw();
+  if (!yt) {
+    yt = new YT.Player('yt', {videoId: p.id, playerVars: {playsinline: 1, rel: 0, start: Math.floor(p.t)}, events: {
+      onReady: () => { const wait = (n) => { if (src !== 'yt' || dur) return; const d = yt.getDuration(); if (d > 0) ytSetup(d); else if (n < 40) setTimeout(() => wait(n + 1), 250); else status('Press play on the video once to finish loading it.'); }; wait(0); },
+      onStateChange: ytState, onError: ytErr}});
+  } else {
+    yt.cueVideoById({videoId: p.id, startSeconds: p.t});
+    const wait = (n) => { if (src !== 'yt' || dur) return; const d = yt.getDuration(); if (d > 0 && yt.getVideoData().video_id === p.id) ytSetup(d); else if (n < 40) setTimeout(() => wait(n + 1), 250); else status('Press play on the video once to finish loading it.'); };
+    wait(0);
+  }
+}
+$('ytForm').addEventListener('submit', e => { e.preventDefault(); loadYT($('ytUrl').value); $('ytUrl').blur(); });
+$('file').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; loadFile(f); });
+$('file').addEventListener('click', e => { status(''); e.target.value = ''; });
+document.addEventListener('dragover', e => { e.preventDefault(); document.body.classList.add('drop'); });
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('drop'); });
+document.addEventListener('drop', e => { e.preventDefault(); document.body.classList.remove('drop'); const f = e.dataTransfer.files[0]; loadFile(f); });
+
+new ResizeObserver(() => draw()).observe($('waveBox'));
+buf = makeDemo();
+objUrl = URL.createObjectURL(wavBlob(buf)); el.src = objUrl;
+afterLoad();
+const sk = demoSections[2]; sel = {a: sk.a, b: sk.b}; syncInputs(); setView(0, dur); updateButtons(); draw();
+const q = new URLSearchParams(location.search), qv = q.get('v') || q.get('url') || q.get('text');
+if (qv) { $('ytUrl').value = qv; loadYT(qv); }
+}
+</script>
+</body>
+</html>
