@@ -54,7 +54,8 @@ h1{font-size:15px;font-weight:700;margin:0;white-space:nowrap}
 .tf{display:inline-flex;align-items:center;gap:3px}
 .tf b{font-size:12px;color:var(--mute);font-weight:600;width:14px}
 .tf .ib{width:28px;height:32px;border-radius:7px;font-size:15px}
-.tf input{width:68px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);font:500 14px Inter,system-ui,sans-serif;text-align:center;font-variant-numeric:tabular-nums;padding:0;-moz-appearance:textfield}
+.tf .ib.now{width:auto;padding:0 8px;font-size:12px;margin-left:2px}
+.tf input{width:118px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);font:500 14px Inter,system-ui,sans-serif;text-align:center;font-variant-numeric:tabular-nums;padding:0;-moz-appearance:textfield}
 .tf input::-webkit-inner-spin-button{display:none}
 #tlen{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
 .sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px}
@@ -73,12 +74,13 @@ h2{font-size:13px;font-weight:700;margin:0}
 .sec span{color:var(--mute);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
 #slist .ib{width:34px;height:34px;font-size:16px;color:var(--mute)}
 .empty{color:var(--mute);font-size:13px}
-#vid{display:none;width:100%;max-height:30vh;background:#000;border-radius:12px}
+#vid{display:none;width:100%;max-height:62vh;background:#000;border-radius:12px}
 body.hasvid #vid{display:block}
+body.hasvid .app,body.hasyt .app{max-width:1200px}
 body.hasvid .wave{height:clamp(70px,11vh,100px)}
 .ytf{display:flex;gap:6px}
 .ytf input{flex:1;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:16px Inter,system-ui,sans-serif;padding:0 10px}
-#ytwrap{display:none;width:min(100%,calc(32vh * 16 / 9));margin:0 auto;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+#ytwrap{display:none;width:min(100%,calc(62vh * 16 / 9));margin:0 auto;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
 #ytwrap iframe{width:100%;height:100%;display:block;border:0}
 body.hasyt #ytwrap{display:block}
 body.hasyt .wave{height:clamp(65px,10vh,95px)}
@@ -116,8 +118,8 @@ body.drop .wave{outline:3px dashed var(--loop);outline-offset:2px}
   </div>
 
   <div class="ab">
-    <div class="tf"><b>A</b><button class="ib" data-nudge="a,-0.01" aria-label="Start 10 ms earlier">‹</button><input id="ta" type="number" step="0.001" inputmode="decimal" aria-label="Loop start, seconds"><button class="ib" data-nudge="a,0.01" aria-label="Start 10 ms later">›</button></div>
-    <div class="tf"><b>B</b><button class="ib" data-nudge="b,-0.01" aria-label="End 10 ms earlier">‹</button><input id="tb" type="number" step="0.001" inputmode="decimal" aria-label="Loop end, seconds"><button class="ib" data-nudge="b,0.01" aria-label="End 10 ms later">›</button></div>
+    <div class="tf"><b>A</b><button class="ib" data-nudge="a,-0.01" aria-label="Start 10 ms earlier">‹</button><input id="ta" type="text" autocomplete="off" spellcheck="false" aria-label="Loop start, h:mm:ss.000"><button class="ib" data-nudge="a,0.01" aria-label="Start 10 ms later">›</button><button class="ib now" data-now="a" title="Set A to the current position (key A)">Set A</button></div>
+    <div class="tf"><b>B</b><button class="ib" data-nudge="b,-0.01" aria-label="End 10 ms earlier">‹</button><input id="tb" type="text" autocomplete="off" spellcheck="false" aria-label="Loop end, h:mm:ss.000"><button class="ib" data-nudge="b,0.01" aria-label="End 10 ms later">›</button><button class="ib now" data-now="b" title="Set B to the current position (key B)">Set B</button></div>
     <span id="tlen"></span>
   </div>
 
@@ -125,13 +127,13 @@ body.drop .wave{outline:3px dashed var(--loop);outline-offset:2px}
     <div class="sl"><label for="spd">Speed <b id="spdv">1.00×</b></label><input type="range" id="spd" min="0.5" max="1" step="0.05" value="1"></div>
     <div class="sl"><label for="gap">Gap <b id="gapv">0 s</b></label><input type="range" id="gap" min="0" max="10" step="0.5" value="0"></div>
   </div>
-  <p class="hint">Drag the handles or drag across the waveform for a new loop. Tap the waveform to set the green cursor; ▶ plays on from there. ‹ › move a handle 10 ms.</p>
+  <p class="hint">Drag the handles or drag across the waveform for a new loop. Tap the waveform to set the green cursor; ▶ plays on from there. ‹ › move a handle 10 ms. Type times as h:mm:ss.000, m:ss or plain seconds. Set A / Set B grab the current position.</p>
 
   <section class="saved" aria-label="Saved sections">
     <h2>Saved sections</h2>
     <div class="save"><input id="sname" type="text" placeholder="Name (optional)" aria-label="Section name"><button class="ib" id="bSave">Save loop</button></div>
     <ul id="slist"></ul>
-    <p class="hint">PC keys: Space loop · K play/pause · P once · 1/2/3 last 5/10/30 s · [ ] start · , . end · wheel zooms · drop a file anywhere to load it.</p>
+    <p class="hint">PC keys: A / B set start / end to now · Space loop · K play/pause · P once · 1/2/3 last 5/10/30 s · [ ] start · , . end · wheel zooms · drop a file anywhere to load it.</p>
   </section>
 </div>
 <script>
@@ -235,7 +237,9 @@ function fit(cv) {
 const tx = (t, w) => (t - view.s) / (view.e - view.s) * w;
 const xt = (x, w) => view.s + x / w * (view.e - view.s);
 function niceStep(span, w) { const target = span / Math.max(1, w / 90); return [.01, .02, .05, .1, .2, .5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600].find(s => s >= target) || 600; }
+const MINOR = {.01: 5, .02: 4, .05: 5, .1: 5, .2: 4, .5: 5, 1: 5, 2: 4, 5: 5, 10: 5, 15: 3, 30: 6, 60: 6, 120: 4, 300: 5, 600: 5};
 function tickLabel(t, step) {
+  if (t >= 3600 && step >= 1) { const s = Math.round(t); return Math.floor(s / 3600) + ':' + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
   if (t >= 60 && step >= 1) return Math.floor(t / 60) + ':' + String(Math.round(t % 60)).padStart(2, '0');
   return t.toFixed(step < .1 ? 2 : step < 1 ? 1 : 0);
 }
@@ -261,10 +265,18 @@ function drawWave() {
   const step = niceStep(span, w);
   g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, ph, w, ruler);
   g.font = '11px Inter,system-ui,sans-serif'; g.textBaseline = 'middle';
+  const nm = MINOR[step] || 5, ms = step / nm;
+  for (let i = Math.ceil(view.s / ms); i * ms <= view.e; i++) {
+    if (i % nm === 0) continue;
+    const x = Math.round(tx(i * ms, w)), half = nm % 2 === 0 && i % nm === nm / 2;
+    g.fillStyle = peaks ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.09)'; g.fillRect(x, 0, 1, ph);
+    g.fillStyle = 'rgba(255,255,255,.4)'; g.fillRect(x, ph, 1, half ? 7 : 4);
+  }
   for (let i = Math.ceil(view.s / step); i * step <= view.e; i++) {
-    const t = i * step, x = tx(t, w);
-    g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(x, ph, 1, 5);
-    g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(tickLabel(t, step), x + 3, ph + ruler / 2 + 1);
+    const t = i * step, x = Math.round(tx(t, w));
+    g.fillStyle = peaks ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.18)'; g.fillRect(x, 0, 1, ph);
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(x, ph, 1, 10);
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(tickLabel(t, step), x + 3, ph + ruler / 2 + 3);
   }
   const xc = tx(cursor, w);
   if (xc >= 0 && xc <= w) { g.fillStyle = CUR; for (let y = 0; y < ph; y += 8) g.fillRect(xc - 1, y, 2, 4); }
@@ -432,27 +444,52 @@ function loopLast(n) {
 }
 
 /* ---------- selection inputs ---------- */
+function fmt(t) {
+  const ms = Math.round(Math.max(0, t) * 1000), h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000), s = (ms % 60000 / 1000).toFixed(3).padStart(6, '0');
+  return (h || dur >= 3600 ? h + ':' + String(m).padStart(2, '0') : String(m).padStart(2, '0')) + ':' + s;
+}
+function parseTime(v) {
+  v = String(v).trim().replace(/,/g, '.'); if (!v) return NaN;
+  const p = v.split(/[:\s]+/); if (p.length > 3 || p.some(x => !/^\d*\.?\d*$/.test(x) || x === '' || x === '.')) return NaN;
+  return p.reduce((acc, x) => acc * 60 + parseFloat(x), 0);
+}
 function syncInputs() {
-  ta.value = sel.a.toFixed(3); tb.value = sel.b.toFixed(3);
+  ta.value = fmt(sel.a); tb.value = fmt(sel.b);
   $('tlen').textContent = (sel.b - sel.a).toFixed(3) + ' s';
+}
+function nowTime() {
+  if (run && !run.inGap) return run.getTime();
+  if (src === 'yt' && yt && yt.getCurrentTime) return yt.getCurrentTime();
+  return cursor;
+}
+function setNow(k) {
+  if (!dur) return;
+  const t = clamp(nowTime(), 0, dur), len = sel.b - sel.a;
+  if (k === 'a') setSel(t, t < sel.b - .02 ? sel.b : Math.min(dur, t + len));
+  else setSel(t > sel.a + .02 ? sel.a : Math.max(0, t - len), t);
+  ensureSelVisible();
+  if (run && run.mode !== 'through') restartIfLooping();
 }
 function setSel(a, b) {
   a = clamp(a, 0, dur); b = clamp(b, 0, dur);
   if (b - a < .02) { if (b + .02 <= dur) b = a + .02; else a = b - .02; }
   sel = {a, b}; syncInputs(); draw();
 }
-ta.addEventListener('change', () => { const v = parseFloat(ta.value); if (!isNaN(v)) setSel(Math.min(v, sel.b - .02), sel.b); else syncInputs(); ensureSelVisible(); restartIfLooping(); });
-tb.addEventListener('change', () => { const v = parseFloat(tb.value); if (!isNaN(v)) setSel(sel.a, Math.max(v, sel.a + .02)); else syncInputs(); ensureSelVisible(); restartIfLooping(); });
+[ta, tb].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') i.blur(); }));
+ta.addEventListener('change', () => { const v = parseTime(ta.value); if (!isNaN(v)) setSel(Math.min(v, sel.b - .02), sel.b); else syncInputs(); ensureSelVisible(); restartIfLooping(); });
+tb.addEventListener('change', () => { const v = parseTime(tb.value); if (!isNaN(v)) setSel(sel.a, Math.max(v, sel.a + .02)); else syncInputs(); ensureSelVisible(); restartIfLooping(); });
 function nudge(k, d) {
   if (k === 'a') setSel(Math.min(sel.a + d, sel.b - .02), sel.b); else setSel(sel.a, Math.max(sel.b + d, sel.a + .02));
   restartIfLooping();
 }
 document.querySelectorAll('[data-nudge]').forEach(b => b.addEventListener('click', () => { const [k, d] = b.dataset.nudge.split(','); nudge(k, +d); }));
+document.querySelectorAll('[data-now]').forEach(b => b.addEventListener('click', () => setNow(b.dataset.now)));
 document.querySelectorAll('[data-last]').forEach(b => b.addEventListener('click', () => loopLast(+b.dataset.last)));
 
 /* ---------- pointer on waveform ---------- */
 const pt = e => { const r = wave.getBoundingClientRect(), x = e.clientX - r.left; return {x, w: r.width, t: clamp(xt(x, r.width), 0, dur)}; };
 wave.addEventListener('pointerdown', e => {
+  if (document.activeElement && document.activeElement.matches('input')) document.activeElement.blur();
   if (!dur) return;
   wave.setPointerCapture(e.pointerId);
   const {x, w, t} = pt(e), da = Math.abs(x - tx(sel.a, w)), db = Math.abs(x - tx(sel.b, w));
@@ -513,7 +550,7 @@ function getList() {
 function putList(arr) { try { localStorage.setItem('shadow:' + fileKey, JSON.stringify(arr)); } catch (e) { status('Could not save in this browser.'); } }
 function renderList() {
   const arr = getList();
-  $('slist').innerHTML = arr.length ? arr.map((s, i) => `<li><button class="sec" data-i="${i}">${esc(s.name)}<span>${s.a.toFixed(3)}–${s.b.toFixed(3)} s</span></button><button class="ib" data-del="${i}" aria-label="Delete ${esc(s.name)}">×</button></li>`).join('')
+  $('slist').innerHTML = arr.length ? arr.map((s, i) => `<li><button class="sec" data-i="${i}">${esc(s.name)}<span>${fmt(s.a)}–${fmt(s.b)}</span></button><button class="ib" data-del="${i}" aria-label="Delete ${esc(s.name)}">×</button></li>`).join('')
     : '<li class="empty">No saved sections yet. Set a loop, then tap Save loop.</li>';
 }
 $('slist').addEventListener('click', e => {
@@ -525,7 +562,7 @@ $('slist').addEventListener('click', e => {
 });
 $('bSave').addEventListener('click', () => {
   if (!dur) return;
-  const arr = getList(), name = $('sname').value.trim() || `${sel.a.toFixed(3)}–${sel.b.toFixed(3)}`;
+  const arr = getList(), name = $('sname').value.trim() || `${fmt(sel.a)}–${fmt(sel.b)}`;
   arr.push({name, a: +sel.a.toFixed(3), b: +sel.b.toFixed(3)}); putList(arr); renderList();
   $('sname').value = ''; status('Saved “' + name + '”.');
 });
@@ -539,6 +576,7 @@ document.addEventListener('keydown', e => {
   if (k === ' ') { e.preventDefault(); $('bLoop').click(); }
   else if (k === 'k') $('bMain').click();
   else if (k === 'p') $('bOnce').click();
+  else if (k === 'a') setNow('a'); else if (k === 'b') setNow('b');
   else if (k === '1') loopLast(5); else if (k === '2') loopLast(10); else if (k === '3') loopLast(30);
   else if (k === '[') nudge('a', -.01); else if (k === ']') nudge('a', .01);
   else if (k === ',') nudge('b', -.01); else if (k === '.') nudge('b', .01);
